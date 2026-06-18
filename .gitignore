@@ -15,8 +15,8 @@ reports/
 allure-results/
 allure-report/
 
-# Screenshots
-screenshots/
+# Screenshots (test output only – root-level folder)
+/screenshots/
 
 # Test results
 TestResults/

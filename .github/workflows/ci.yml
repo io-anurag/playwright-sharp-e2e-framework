@@ -161,7 +161,7 @@ jobs:
           TEST_ENVIRONMENT: qa
           BROWSER: ${{ matrix.browser }}
           HEADLESS: "true"
-          BASE_URL: ${{ secrets.BASE_URL_QA || 'https://demo.playwright.dev/todomvc' }}
+          BASE_URL: ${{ secrets.BASE_URL_QA || 'https://opensource-demo.orangehrmlive.com' }}
           API_URL: ${{ secrets.API_URL_QA || 'https://jsonplaceholder.typicode.com' }}
 
       - name: Upload screenshots on failure

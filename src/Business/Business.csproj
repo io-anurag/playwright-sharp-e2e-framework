@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <AssemblyName>AutomationFramework.Business</AssemblyName>
+    <RootNamespace>AutomationFramework.Business</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Core\Core.csproj" />
+    <ProjectReference Include="..\UI\UI.csproj" />
+    <ProjectReference Include="..\API\API.csproj" />
+  </ItemGroup>
+
+</Project>

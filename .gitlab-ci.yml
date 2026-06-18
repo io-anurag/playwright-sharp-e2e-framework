@@ -1,0 +1,165 @@
+# GitLab CI/CD Pipeline
+# File: .gitlab-ci.yml
+
+image: mcr.microsoft.com/dotnet/sdk:10.0
+
+variables:
+  DOTNET_VERSION: "10.0"
+  TEST_ENVIRONMENT: ${CI_ENVIRONMENT_NAME:-qa}
+  BROWSER: "chromium"
+  HEADLESS: "true"
+  NUGET_PACKAGES: $CI_PROJECT_DIR/.nuget
+
+cache:
+  key: ${CI_COMMIT_REF_SLUG}
+  paths:
+    - .nuget/
+
+stages:
+  - build
+  - test-api
+  - test-ui
+  - report
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Build
+# ─────────────────────────────────────────────────────────────────────────────
+build:
+  stage: build
+  script:
+    - dotnet restore AutomationFramework.sln
+    - dotnet build AutomationFramework.sln --no-restore --configuration Release
+  artifacts:
+    paths:
+      - "**/bin/**"
+      - "**/obj/**"
+    expire_in: 1 hour
+
+# ─────────────────────────────────────────────────────────────────────────────
+# API Tests
+# ─────────────────────────────────────────────────────────────────────────────
+api:smoke:
+  stage: test-api
+  needs: [build]
+  script:
+    - |
+      dotnet test tests/APITests/APITests.csproj \
+        --no-build \
+        --configuration Release \
+        --logger "trx;LogFileName=api-smoke.trx" \
+        --filter "Category=Smoke&Category=API" \
+        --settings nunit.runsettings
+  variables:
+    API_URL: ${API_URL_QA:-https://jsonplaceholder.typicode.com}
+  artifacts:
+    when: always
+    paths:
+      - "**/*.trx"
+      - reports/
+      - logs/
+    expire_in: 7 days
+    reports:
+      junit: "**/*.trx"
+
+api:regression:
+  stage: test-api
+  needs: [build]
+  script:
+    - |
+      dotnet test tests/APITests/APITests.csproj \
+        --no-build \
+        --configuration Release \
+        --logger "trx;LogFileName=api-regression.trx" \
+        --filter "Category=Regression&Category=API" \
+        --settings nunit.runsettings
+  variables:
+    API_URL: ${API_URL_QA:-https://jsonplaceholder.typicode.com}
+  artifacts:
+    when: always
+    paths:
+      - "**/*.trx"
+      - reports/
+      - logs/
+    expire_in: 7 days
+
+# ─────────────────────────────────────────────────────────────────────────────
+# UI Tests
+# ─────────────────────────────────────────────────────────────────────────────
+.ui-test-base:
+  stage: test-ui
+  needs: [build]
+  before_script:
+    - apt-get update && apt-get install -y libglib2.0-0 libnss3 libdbus-1-3 libatk1.0-0 libatk-bridge2.0-0 libcups2 libdrm2 libxkbcommon0 libxcomposite1 libxdamage1 libxfixes3 libxrandr2 libgbm1 libpango-1.0-0 libcairo2 libasound2 || true
+    - dotnet tool install --global Microsoft.Playwright.CLI 2>/dev/null || true
+    - export PATH="$PATH:$HOME/.dotnet/tools"
+    - playwright install $BROWSER --with-deps 2>/dev/null || true
+
+ui:smoke:chromium:
+  extends: .ui-test-base
+  variables:
+    BROWSER: chromium
+    BASE_URL: ${BASE_URL_QA}
+    API_URL: ${API_URL_QA:-https://jsonplaceholder.typicode.com}
+  script:
+    - |
+      dotnet test tests/UITests/UITests.csproj \
+        --no-build \
+        --configuration Release \
+        --logger "trx;LogFileName=ui-smoke-chromium.trx" \
+        --filter "Category=Smoke&Category=UI" \
+        --settings nunit.runsettings
+  artifacts:
+    when: always
+    paths:
+      - "**/*.trx"
+      - reports/
+      - screenshots/
+      - logs/
+    expire_in: 7 days
+
+ui:regression:chromium:
+  extends: .ui-test-base
+  when: manual
+  variables:
+    BROWSER: chromium
+    BASE_URL: ${BASE_URL_QA}
+    API_URL: ${API_URL_QA:-https://jsonplaceholder.typicode.com}
+  script:
+    - |
+      dotnet test tests/UITests/UITests.csproj \
+        --no-build \
+        --configuration Release \
+        --logger "trx;LogFileName=ui-regression-chromium.trx" \
+        --filter "Category=Regression&Category=UI" \
+        --settings nunit.runsettings
+  artifacts:
+    when: always
+    paths:
+      - "**/*.trx"
+      - reports/
+      - screenshots/
+      - logs/
+    expire_in: 14 days
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Report collection (runs even when tests fail)
+# ─────────────────────────────────────────────────────────────────────────────
+collect-reports:
+  stage: report
+  needs:
+    - job: api:smoke
+      optional: true
+    - job: api:regression
+      optional: true
+    - job: ui:smoke:chromium
+      optional: true
+  when: always
+  script:
+    - echo "All artifacts collected. View them in the GitLab CI artifact browser."
+    - ls -la reports/ || echo "No reports directory found"
+  artifacts:
+    paths:
+      - reports/
+      - logs/
+      - screenshots/
+    expire_in: 30 days

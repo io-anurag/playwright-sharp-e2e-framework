@@ -1,0 +1,57 @@
+# .NET
+bin/
+obj/
+*.user
+*.suo
+.vs/
+*.userprefs
+
+# Logs
+logs/
+*.log
+
+# Reports
+reports/
+allure-results/
+allure-report/
+
+# Screenshots
+screenshots/
+
+# Test results
+TestResults/
+*.trx
+*.xml
+
+# NuGet
+*.nupkg
+*.snupkg
+.nuget/
+packages/
+nuget.exe
+
+# Environment files (contain sensitive data)
+config/.env.dev
+config/.env.qa
+config/.env.stage
+config/.env.prod
+
+# Keep example env files
+!config/.env.example
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Rider
+.idea/
+
+# VS Code
+.vscode/
+!.vscode/settings.json
+!.vscode/extensions.json
+
+# Coverage
+coverage/
+*.coverage
+*.coveragexml

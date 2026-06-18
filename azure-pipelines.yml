@@ -1,0 +1,181 @@
+# Azure DevOps Pipeline
+# File: azure-pipelines.yml
+#
+# Runs on every PR to main/develop, and can be triggered manually
+# with environment and browser parameters.
+
+trigger:
+  branches:
+    include:
+      - main
+      - develop
+      - feature/*
+
+pr:
+  branches:
+    include:
+      - main
+      - develop
+
+parameters:
+  - name: environment
+    displayName: Target Environment
+    type: string
+    default: qa
+    values: [dev, qa, stage, prod]
+  - name: browser
+    displayName: Browser
+    type: string
+    default: chromium
+    values: [chromium, chrome, firefox, edge, webkit]
+  - name: testCategory
+    displayName: Test Category
+    type: string
+    default: Smoke
+
+variables:
+  DOTNET_VERSION: "10.0.x"
+  TEST_ENVIRONMENT: ${{ parameters.environment }}
+  BROWSER: ${{ parameters.browser }}
+  HEADLESS: "true"
+  BuildConfiguration: Release
+
+pool:
+  vmImage: ubuntu-latest
+
+stages:
+
+# ─────────────────────────────────────────────────────────────────────────────
+- stage: Build
+  displayName: "Build & Restore"
+  jobs:
+    - job: BuildJob
+      displayName: "Build Solution"
+      steps:
+        - task: UseDotNet@2
+          displayName: "Install .NET SDK"
+          inputs:
+            version: $(DOTNET_VERSION)
+            packageType: sdk
+
+        - task: Cache@2
+          displayName: "Cache NuGet packages"
+          inputs:
+            key: 'nuget | "$(Agent.OS)" | **/*.csproj'
+            restoreKeys: 'nuget | "$(Agent.OS)"'
+            path: $(NUGET_PACKAGES)
+
+        - script: dotnet restore AutomationFramework.sln
+          displayName: "Restore NuGet packages"
+
+        - script: dotnet build AutomationFramework.sln --no-restore --configuration $(BuildConfiguration)
+          displayName: "Build solution"
+
+        - task: PublishPipelineArtifact@1
+          displayName: "Publish build artifacts"
+          inputs:
+            targetPath: "$(Build.SourcesDirectory)"
+            artifact: "build"
+
+# ─────────────────────────────────────────────────────────────────────────────
+- stage: APITests
+  displayName: "API Tests"
+  dependsOn: Build
+  jobs:
+    - job: RunAPITests
+      displayName: "API Smoke & Regression"
+      steps:
+        - task: UseDotNet@2
+          inputs:
+            version: $(DOTNET_VERSION)
+
+        - script: dotnet restore AutomationFramework.sln
+          displayName: Restore
+
+        - script: dotnet build AutomationFramework.sln --no-restore --configuration $(BuildConfiguration)
+          displayName: Build
+
+        - script: |
+            dotnet test tests/APITests/APITests.csproj \
+              --no-build \
+              --configuration $(BuildConfiguration) \
+              --logger "trx;LogFileName=$(Common.TestResultsDirectory)/api-results.trx" \
+              --filter "Category=${{ parameters.testCategory }}&Category=API" \
+              --settings nunit.runsettings
+          displayName: "Run API Tests"
+          env:
+            TEST_ENVIRONMENT: $(TEST_ENVIRONMENT)
+            API_URL: $(API_URL)
+
+        - task: PublishTestResults@2
+          condition: always()
+          displayName: "Publish API Test Results"
+          inputs:
+            testResultsFormat: VSTest
+            testResultsFiles: "$(Common.TestResultsDirectory)/*.trx"
+            testRunTitle: "API Tests – $(TEST_ENVIRONMENT)"
+
+# ─────────────────────────────────────────────────────────────────────────────
+- stage: UITests
+  displayName: "UI Tests"
+  dependsOn: Build
+  jobs:
+    - job: RunUITests
+      displayName: "UI Tests – $(BROWSER)"
+      steps:
+        - task: UseDotNet@2
+          inputs:
+            version: $(DOTNET_VERSION)
+
+        - script: dotnet restore AutomationFramework.sln
+          displayName: Restore
+
+        - script: dotnet build AutomationFramework.sln --no-restore --configuration $(BuildConfiguration)
+          displayName: Build
+
+        - script: playwright install $(BROWSER) --with-deps
+          displayName: "Install Playwright browser"
+
+        - script: |
+            dotnet test tests/UITests/UITests.csproj \
+              --no-build \
+              --configuration $(BuildConfiguration) \
+              --logger "trx;LogFileName=$(Common.TestResultsDirectory)/ui-results.trx" \
+              --filter "Category=${{ parameters.testCategory }}&Category=UI" \
+              --settings nunit.runsettings
+          displayName: "Run UI Tests"
+          env:
+            TEST_ENVIRONMENT: $(TEST_ENVIRONMENT)
+            BROWSER: $(BROWSER)
+            HEADLESS: $(HEADLESS)
+            BASE_URL: $(BASE_URL)
+            API_URL: $(API_URL)
+
+        - task: PublishTestResults@2
+          condition: always()
+          displayName: "Publish UI Test Results"
+          inputs:
+            testResultsFormat: VSTest
+            testResultsFiles: "$(Common.TestResultsDirectory)/*.trx"
+            testRunTitle: "UI Tests – $(BROWSER) – $(TEST_ENVIRONMENT)"
+
+        - task: PublishPipelineArtifact@1
+          condition: failed()
+          displayName: "Upload failure screenshots"
+          inputs:
+            targetPath: screenshots/
+            artifact: "screenshots-$(BROWSER)"
+
+        - task: PublishPipelineArtifact@1
+          condition: always()
+          displayName: "Upload HTML report"
+          inputs:
+            targetPath: reports/
+            artifact: "extent-report-$(BROWSER)"
+
+        - task: PublishPipelineArtifact@1
+          condition: always()
+          displayName: "Upload logs"
+          inputs:
+            targetPath: logs/
+            artifact: "logs-$(BROWSER)"

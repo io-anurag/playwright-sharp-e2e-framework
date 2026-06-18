@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RunSettings>
+  <NUnit>
+    <Workers>4</Workers>
+    <DefaultTimeout>120000</DefaultTimeout>
+    <StopOnError>false</StopOnError>
+  </NUnit>
+  <TestRunParameters>
+    <Parameter name="Browser" value="chromium"/>
+    <Parameter name="Environment" value="dev"/>
+    <Parameter name="Headless" value="true"/>
+  </TestRunParameters>
+  <RunConfiguration>
+    <ResultsDirectory>TestResults</ResultsDirectory>
+    <TargetPlatform>x64</TargetPlatform>
+  </RunConfiguration>
+  <DataCollectionRunSettings>
+    <DataCollectors>
+      <DataCollector friendlyName="Code Coverage" enabled="false" />
+    </DataCollectors>
+  </DataCollectionRunSettings>
+</RunSettings>

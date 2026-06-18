@@ -1,0 +1,6 @@
+FirstName,LastName,Email,Role,IsActive
+Alice,Smith,alice.smith@example.com,Admin,true
+Bob,Jones,bob.jones@example.com,Editor,true
+Carol,White,carol.white@example.com,Viewer,true
+Dave,Black,dave.black@example.com,Editor,false
+Eve,Brown,eve.brown@example.com,Admin,true

@@ -1,0 +1,18 @@
+{
+  "name": "John Doe",
+  "username": "johndoe_auto",
+  "email": "johndoe_auto@example.com",
+  "phone": "+1-555-0199",
+  "website": "johndoe.example.com",
+  "address": {
+    "street": "123 Automation Ave",
+    "suite": "Suite 1",
+    "city": "Test City",
+    "zipcode": "12345"
+  },
+  "company": {
+    "name": "AutoCorp",
+    "catchPhrase": "Test Everything",
+    "bs": "deliver automated solutions"
+  }
+}

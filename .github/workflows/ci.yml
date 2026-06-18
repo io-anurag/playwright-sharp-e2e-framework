@@ -1,0 +1,220 @@
+name: CI – Automation Framework
+
+on:
+  push:
+    branches: [main, develop, "feature/**"]
+  pull_request:
+    branches: [main, develop]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Target environment"
+        required: true
+        default: "qa"
+        type: choice
+        options: [dev, qa, stage]
+      browser:
+        description: "Browser to use"
+        required: true
+        default: "chromium"
+        type: choice
+        options: [chromium, chrome, firefox, edge, webkit]
+      test_category:
+        description: "Test category to run"
+        required: false
+        default: "Smoke"
+
+env:
+  DOTNET_VERSION: "10.0.x"
+  TEST_ENVIRONMENT: ${{ github.event.inputs.environment || 'qa' }}
+  BROWSER: ${{ github.event.inputs.browser || 'chromium' }}
+  HEADLESS: "true"
+
+jobs:
+  # ─────────────────────────────────────────────────────────────────────────────
+  build:
+    name: Build & Restore
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET ${{ env.DOTNET_VERSION }}
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+          restore-keys: ${{ runner.os }}-nuget-
+
+      - name: Restore dependencies
+        run: dotnet restore AutomationFramework.sln
+
+      - name: Build solution
+        run: dotnet build AutomationFramework.sln --no-restore --configuration Release
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  api-tests:
+    name: API Tests (${{ matrix.environment }})
+    needs: build
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        environment: [qa]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore & Build
+        run: |
+          dotnet restore AutomationFramework.sln
+          dotnet build AutomationFramework.sln --no-restore --configuration Release
+
+      - name: Create environment config
+        run: |
+          cp config/.env.qa config/.env.${{ matrix.environment }} 2>/dev/null || true
+        env:
+          BASE_URL: ${{ secrets.BASE_URL_QA }}
+          API_URL: ${{ secrets.API_URL_QA }}
+          USERNAME: ${{ secrets.TEST_USERNAME_QA }}
+          PASSWORD: ${{ secrets.TEST_PASSWORD_QA }}
+
+      - name: Run API Smoke Tests
+        run: >
+          dotnet test tests/APITests/APITests.csproj
+          --no-build
+          --configuration Release
+          --logger "trx;LogFileName=api-smoke-results.trx"
+          --filter "Category=Smoke&Category=API"
+          --settings nunit.runsettings
+        env:
+          TEST_ENVIRONMENT: ${{ matrix.environment }}
+          API_URL: ${{ secrets.API_URL_QA || 'https://jsonplaceholder.typicode.com' }}
+
+      - name: Run API Regression Tests
+        run: >
+          dotnet test tests/APITests/APITests.csproj
+          --no-build
+          --configuration Release
+          --logger "trx;LogFileName=api-regression-results.trx"
+          --filter "Category=Regression&Category=API"
+          --settings nunit.runsettings
+        env:
+          TEST_ENVIRONMENT: ${{ matrix.environment }}
+          API_URL: ${{ secrets.API_URL_QA || 'https://jsonplaceholder.typicode.com' }}
+
+      - name: Upload API test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-test-results-${{ matrix.environment }}
+          path: "**/*.trx"
+          retention-days: 30
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  ui-tests:
+    name: UI Tests (${{ matrix.browser }})
+    needs: build
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore & Build
+        run: |
+          dotnet restore AutomationFramework.sln
+          dotnet build AutomationFramework.sln --no-restore --configuration Release
+
+      - name: Install Playwright browsers
+        run: |
+          dotnet tool install --global Microsoft.Playwright.CLI || true
+          playwright install ${{ matrix.browser }} --with-deps
+
+      - name: Run UI Smoke Tests
+        run: >
+          dotnet test tests/UITests/UITests.csproj
+          --no-build
+          --configuration Release
+          --logger "trx;LogFileName=ui-smoke-${{ matrix.browser }}.trx"
+          --filter "Category=Smoke&Category=UI"
+          --settings nunit.runsettings
+        env:
+          TEST_ENVIRONMENT: qa
+          BROWSER: ${{ matrix.browser }}
+          HEADLESS: "true"
+          BASE_URL: ${{ secrets.BASE_URL_QA || 'https://demo.playwright.dev/todomvc' }}
+          API_URL: ${{ secrets.API_URL_QA || 'https://jsonplaceholder.typicode.com' }}
+
+      - name: Upload screenshots on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: screenshots-${{ matrix.browser }}
+          path: screenshots/
+          retention-days: 7
+
+      - name: Upload UI test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ui-test-results-${{ matrix.browser }}
+          path: "**/*.trx"
+          retention-days: 30
+
+      - name: Upload ExtentReports HTML
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: extent-report-${{ matrix.browser }}
+          path: reports/*.html
+          retention-days: 30
+
+      - name: Upload logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: logs-${{ matrix.browser }}
+          path: logs/
+          retention-days: 7
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  publish-results:
+    name: Publish Test Summary
+    needs: [api-tests, ui-tests]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download all test results
+        uses: actions/download-artifact@v4
+        with:
+          path: all-results/
+
+      - name: Publish test report summary
+        uses: dorny/test-reporter@v1
+        if: always()
+        with:
+          name: NUnit Test Results
+          path: "all-results/**/*.trx"
+          reporter: dotnet-trx
+          fail-on-error: false

@@ -1,0 +1,17 @@
+{
+  "allure": {
+    "directory": "allure-results",
+    "links": [
+      {
+        "name": "tms",
+        "type": "tms",
+        "urlTemplate": "https://jira.company.com/browse/{}"
+      },
+      {
+        "name": "issue",
+        "type": "issue",
+        "urlTemplate": "https://github.com/company/repo/issues/{}"
+      }
+    ]
+  }
+}

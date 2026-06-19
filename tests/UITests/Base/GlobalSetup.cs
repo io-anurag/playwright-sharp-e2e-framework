@@ -3,7 +3,7 @@ using AutomationFramework.Core.Logging;
 using AutomationFramework.Infrastructure.Reporting;
 using NUnit.Framework;
 
-namespace AutomationFramework.UITests.Base;
+namespace AutomationFramework.UITests;
 
 /// <summary>
 /// Assembly-level one-time setup and teardown.

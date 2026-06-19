@@ -34,13 +34,13 @@ public sealed class LoginSmokeTests : BaseUITest
         await Page.GotoAsync($"{BaseUrl}/web/index.php/auth/login",
             new PageGotoOptions { WaitUntil = WaitUntilState.NetworkIdle });
 
-        Page.Url.Should().Contain("/auth/login", "URL must route to the OrangeHRM login page");
+        Page.Url.Should().Contain("/auth/login", ValidationMessages.Login.UrlContainsAuthLogin);
         (await Page.IsVisibleAsync("input[name='username']")
-            ).Should().BeTrue("username input must be present");
+            ).Should().BeTrue(ValidationMessages.Login.UsernameInputVisible);
         (await Page.IsVisibleAsync("input[name='password']")
-            ).Should().BeTrue("password input must be present");
+            ).Should().BeTrue(ValidationMessages.Login.PasswordInputVisible);
         (await Page.IsVisibleAsync("button[type='submit']")
-            ).Should().BeTrue("Login submit button must be present");
+            ).Should().BeTrue(ValidationMessages.Login.SubmitButtonVisible);
 
         Reporter.LogInfo("Login page verified at: {Url}", Page.Url);
     }
@@ -54,13 +54,13 @@ public sealed class LoginSmokeTests : BaseUITest
         var dashboard = await _loginFlow.LoginAsync("Admin", "admin123");
 
         var isLoaded = await dashboard.IsDashboardLoadedAsync();
-        isLoaded.Should().BeTrue("the OrangeHRM dashboard heading must appear after login");
+        isLoaded.Should().BeTrue(ValidationMessages.Login.DashboardHeadingVisible);
 
         var username = await dashboard.GetLoggedInUsernameAsync();
-        username.Should().NotBeNullOrWhiteSpace("the logged-in user’s name must appear in the topbar");
+        username.Should().NotBeNullOrWhiteSpace(ValidationMessages.Login.LoggedInUsernameVisible);
 
         Page.Url.Should().Contain("/dashboard/index",
-            "a successful login must redirect to the dashboard");
+            ValidationMessages.Login.SuccessRedirectsToDashboard);
 
         Reporter.LogInfo("Dashboard loaded. Logged in as: {User}", username);
     }
@@ -74,11 +74,11 @@ public sealed class LoginSmokeTests : BaseUITest
         var hasError = await _loginFlow.TryLoginWithInvalidCredentialsAsync(
             "wrong_user_xyz", "BadPassword999!");
 
-        hasError.Should().BeTrue("an error alert must appear for invalid credentials");
+        hasError.Should().BeTrue(ValidationMessages.Login.ErrorAlertVisible);
 
         var errorText = await _loginFlow.GetLoginErrorMessageAsync();
         errorText.Should().Contain("Invalid credentials",
-            "OrangeHRM shows 'Invalid credentials' for wrong username/password");
+            ValidationMessages.Login.InvalidCredentialsText);
 
         Reporter.LogInfo("Error message shown: {Error}", errorText);
     }

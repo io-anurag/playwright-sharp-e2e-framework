@@ -50,7 +50,7 @@ public sealed class UserProjectIntegrationTests : BaseApiTest
         {
             var userProjects = projects.Where(p => p.UserId == user.Id).ToList();
             userProjects.Should().NotBeEmpty(
-                $"User ID {user.Id} ({user.Name}) should own at least one project");
+                string.Format(ValidationMessages.ApiProjects.UserOwnsAtLeastOne, user.Id, user.Name));
 
             Reporter.LogInfo("User {Id} ({Name}) owns {Count} project(s)",
                 user.Id, user.Name, userProjects.Count);
@@ -65,7 +65,7 @@ public sealed class UserProjectIntegrationTests : BaseApiTest
 
         // Verify the user exists
         var user = await _userFacade.GetUserByIdAsync(1);
-        user.Should().NotBeNull("user ID 1 must exist before we can link a project to it");
+        user.Should().NotBeNull(ValidationMessages.ApiProjects.UserOneMustExist);
 
         // Create the project
         var project = await _projectFacade.CreateProjectAsync(
@@ -90,9 +90,9 @@ public sealed class UserProjectIntegrationTests : BaseApiTest
 
         var projects = await _projectFacade.GetProjectsByUserAsync(targetUserId);
 
-        projects.Should().NotBeEmpty($"user {targetUserId} should have projects");
+        projects.Should().NotBeEmpty(string.Format(ValidationMessages.ApiProjects.UserShouldHaveProjects, targetUserId));
         projects.Should().AllSatisfy(p =>
-            p.UserId.Should().Be(targetUserId, "all returned projects must belong to the queried user"));
+            p.UserId.Should().Be(targetUserId, ValidationMessages.ApiProjects.BelongToQueriedUser));
 
         Reporter.LogInfo("User {UserId} has {Count} projects", targetUserId, projects.Count);
     }

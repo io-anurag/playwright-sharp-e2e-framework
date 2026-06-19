@@ -77,14 +77,14 @@ public sealed class OrangeHrmNavigationE2ETests : BaseUITest
 
         // URL check
         Page.Url.Should().Contain("viewSystemUsers",
-            "navigating to System Users must load the correct page");
+            ValidationMessages.Navigation.SystemUsersUrl);
 
         // Table check
         var isLoaded = await _userMgmtFlow.IsUsersPageLoadedAsync();
-        isLoaded.Should().BeTrue("the system-users table must be rendered");
+        isLoaded.Should().BeTrue(ValidationMessages.Navigation.SystemUsersTableRendered);
 
         var rowCount = await _userMgmtFlow.GetUserCountAsync();
-        rowCount.Should().BeGreaterThan(0, "there must be at least one user in the system");
+        rowCount.Should().BeGreaterThan(0, ValidationMessages.Navigation.SystemUsersHasRows);
 
         Reporter.LogInfo("User Management loaded with {Count} rows", rowCount);
     }
@@ -99,14 +99,14 @@ public sealed class OrangeHrmNavigationE2ETests : BaseUITest
         await dashboard.ClickNavigationMenuAsync("PIM");
 
         Page.Url.Should().Contain("/pim/",
-            "clicking PIM in the nav must route to the PIM module");
+            ValidationMessages.Navigation.PimUrl);
 
         Reporter.LogInfo("PIM module URL: {Url}", Page.Url);
 
         // Navigate back to dashboard
         await dashboard.ClickNavigationMenuAsync("Dashboard");
         Page.Url.Should().Contain("/dashboard/",
-            "clicking Dashboard must return to the main dashboard");
+            ValidationMessages.Navigation.DashboardUrl);
 
         Reporter.LogInfo("Returned to Dashboard: {Url}", Page.Url);
     }
@@ -121,14 +121,14 @@ public sealed class OrangeHrmNavigationE2ETests : BaseUITest
         // Dashboard heading must say "Dashboard"
         var heading = await dashboard.GetPageHeadingAsync();
         heading.Should().Be("Dashboard",
-            "the page heading must read 'Dashboard' immediately after login");
+            ValidationMessages.Navigation.DashboardHeading);
 
         // Logout
         await _loginFlow.LogoutAsync();
 
         // Must land back on login
         Page.Url.Should().Contain("/auth/login",
-            "logout must redirect back to the OrangeHRM login page");
+            ValidationMessages.Navigation.LogoutRedirectsToLogin);
 
         Reporter.LogInfo("Logout successful. Redirected to: {Url}", Page.Url);
     }

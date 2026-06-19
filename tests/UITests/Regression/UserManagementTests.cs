@@ -44,10 +44,10 @@ public sealed class UserManagementTests : BaseUITest
         await _userMgmtFlow.GoToUsersPageAsync();
 
         var isLoaded = await _userMgmtFlow.IsUsersPageLoadedAsync();
-        isLoaded.Should().BeTrue("the users table must be visible after navigation");
+        isLoaded.Should().BeTrue(ValidationMessages.UserManagement.TableVisible);
 
         var rowCount = await _userMgmtFlow.GetUserCountAsync();
-        rowCount.Should().BeGreaterThan(0, "at least one system user must exist");
+        rowCount.Should().BeGreaterThan(0, ValidationMessages.UserManagement.HasAtLeastOneUser);
 
         Reporter.LogInfo("System Users page loaded with {Count} user rows", rowCount);
     }
@@ -60,7 +60,7 @@ public sealed class UserManagementTests : BaseUITest
         var matchCount = await _userMgmtFlow.SearchForUserAsync("Admin");
 
         matchCount.Should().BeGreaterThan(0,
-            "searching for 'Admin' must return at least the built-in Admin account");
+            ValidationMessages.UserManagement.SearchReturnsAdminResult);
 
         Reporter.LogInfo("Search returned {Count} rows for 'Admin'", matchCount);
     }
@@ -76,7 +76,7 @@ public sealed class UserManagementTests : BaseUITest
         var recordText = await _userMgmtFlow.GetRecordsFoundTextAsync();
 
         recordText.Should().Contain(rowCount.ToString(),
-            "the records-found span should embed the row count");
+            ValidationMessages.UserManagement.RecordsFoundMatchesRows);
 
         Reporter.LogInfo("Row count: {Rows} | Records text: '{Text}'", rowCount, recordText);
     }
@@ -92,7 +92,7 @@ public sealed class UserManagementTests : BaseUITest
         await Page.WaitForLoadStateAsync(Microsoft.Playwright.LoadState.NetworkIdle);
 
         Page.Url.Should().Contain("saveSystemUser",
-            "clicking Add must navigate to the save/create user form");
+            ValidationMessages.UserManagement.AddButtonNavigatesToForm);
 
         Reporter.LogInfo("Add User form URL: {Url}", Page.Url);
     }

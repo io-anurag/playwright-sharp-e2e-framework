@@ -149,7 +149,7 @@ playwright-sharp-e2e-framework/
 
 ## Installation
 
-```bash
+```powershell
 # 1. Clone the repository
 git clone https://github.com/io-anurag/playwright-sharp-e2e-framework.git
 cd playwright-sharp-e2e-framework
@@ -162,10 +162,9 @@ dotnet build AutomationFramework.sln
 
 # 4. Install Playwright browsers
 pwsh tests/UITests/bin/Release/net10.0/playwright.ps1 install
-# Or: playwright install --with-deps
 
 # 5. Copy and configure your environment file
-cp config/.env.dev config/.env.local
+Copy-Item config/.env.dev config/.env.local
 # Edit config/.env.dev with your BASE_URL, API_URL, USERNAME, PASSWORD
 ```
 
@@ -184,9 +183,19 @@ Environment files live in `config/` and are loaded automatically:
 
 ### Switching environments
 
+**bash / macOS / Linux / CI**
 ```bash
 # Via environment variable (highest priority)
 TEST_ENVIRONMENT=qa dotnet test
+
+# Via CI/CD environment variable
+dotnet test  # TEST_ENVIRONMENT is set by the pipeline
+```
+
+**PowerShell (Windows)**
+```powershell
+# Via environment variable (highest priority)
+$env:TEST_ENVIRONMENT = "qa"; dotnet test
 
 # Via CI/CD environment variable
 dotnet test  # TEST_ENVIRONMENT is set by the pipeline
@@ -248,6 +257,7 @@ dotnet test --settings nunit.runsettings
 
 ## Browser Selection
 
+**bash / macOS / Linux / CI**
 ```bash
 # Chromium (default)
 BROWSER=chromium dotnet test tests/UITests/UITests.csproj
@@ -266,6 +276,27 @@ BROWSER=webkit dotnet test tests/UITests/UITests.csproj
 
 # Headed mode (visible browser window)
 HEADLESS=false BROWSER=chromium dotnet test tests/UITests/UITests.csproj
+```
+
+**PowerShell (Windows)**
+```powershell
+# Chromium (default)
+$env:BROWSER = "chromium"; dotnet test tests/UITests/UITests.csproj
+
+# Google Chrome (requires Chrome to be installed)
+$env:BROWSER = "chrome"; dotnet test tests/UITests/UITests.csproj
+
+# Mozilla Firefox
+$env:BROWSER = "firefox"; dotnet test tests/UITests/UITests.csproj
+
+# Microsoft Edge
+$env:BROWSER = "edge"; dotnet test tests/UITests/UITests.csproj
+
+# WebKit (Safari engine)
+$env:BROWSER = "webkit"; dotnet test tests/UITests/UITests.csproj
+
+# Headed mode (visible browser window)
+$env:HEADLESS = "false"; $env:BROWSER = "chromium"; dotnet test tests/UITests/UITests.csproj
 ```
 
 ---

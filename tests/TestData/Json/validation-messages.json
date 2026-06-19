@@ -1,0 +1,51 @@
+{
+  "Login": {
+    "UrlContainsAuthLogin": "URL must route to the OrangeHRM login page",
+    "UsernameInputVisible": "username input must be present",
+    "PasswordInputVisible": "password input must be present",
+    "SubmitButtonVisible": "Login submit button must be present",
+    "DashboardHeadingVisible": "the OrangeHRM dashboard heading must appear after login",
+    "LoggedInUsernameVisible": "the logged-in user's name must appear in the topbar",
+    "SuccessRedirectsToDashboard": "a successful login must redirect to the dashboard",
+    "ErrorAlertVisible": "an error alert must appear for invalid credentials",
+    "InvalidCredentialsText": "OrangeHRM shows 'Invalid credentials' for wrong username/password"
+  },
+  "UserManagement": {
+    "TableVisible": "the users table must be visible after navigation",
+    "HasAtLeastOneUser": "at least one system user must exist",
+    "SearchReturnsAdminResult": "searching for 'Admin' must return at least the built-in Admin account",
+    "RecordsFoundMatchesRows": "the records-found span should embed the row count",
+    "AddButtonNavigatesToForm": "clicking Add must navigate to the save/create user form"
+  },
+  "Navigation": {
+    "SystemUsersUrl": "navigating to System Users must load the correct page",
+    "SystemUsersTableRendered": "the system-users table must be rendered",
+    "SystemUsersHasRows": "there must be at least one user in the system",
+    "PimUrl": "clicking PIM in the nav must route to the PIM module",
+    "DashboardUrl": "clicking Dashboard must return to the main dashboard",
+    "DashboardHeading": "the page heading must read 'Dashboard' immediately after login",
+    "LogoutRedirectsToLogin": "logout must redirect back to the OrangeHRM login page"
+  },
+  "ApiUsers": {
+    "NonEmpty": "the API must return at least one user",
+    "ExactCount": "JSONPlaceholder returns exactly 10 seed users",
+    "ByIdExists": "user with ID 1 must exist",
+    "CreateIdAssigned": "the API should assign an ID to the created resource",
+    "NotFoundReturns404": "a non-existent resource should return 404",
+    "CreateSucceeds": "POST /users should succeed",
+    "CreateReturns201": "resource creation must return 201",
+    "UpdateSucceeds": "PUT /users/1 should succeed",
+    "DeleteReturns200": "DELETE /users/1 should return 200",
+    "IdPositive": "User ID should be positive",
+    "NameNotEmpty": "User.Name should not be empty",
+    "EmailNotEmpty": "User.Email should not be empty",
+    "EmailValidFormat": "User.Email '{0}' should be a valid email",
+    "UsernameNotEmpty": "User.Username should not be empty"
+  },
+  "ApiProjects": {
+    "UserOwnsAtLeastOne": "User ID {0} ({1}) should own at least one project",
+    "UserOneMustExist": "user ID 1 must exist before we can link a project to it",
+    "BelongToQueriedUser": "all returned projects must belong to the queried user",
+    "UserShouldHaveProjects": "user {0} should have projects"
+  }
+}

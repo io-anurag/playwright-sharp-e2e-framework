@@ -40,7 +40,7 @@ public sealed class UserApiSmokeTests : BaseApiTest
 
         var users = await _userFacade.GetAllUsersAsync();
 
-        users.Should().NotBeNullOrEmpty("the API must return at least one user");
+        users.Should().NotBeNullOrEmpty(ValidationMessages.ApiUsers.NonEmpty);
         users.Should().AllSatisfy(u =>
         {
             u.Id.Should().BeGreaterThan(0);
@@ -59,7 +59,7 @@ public sealed class UserApiSmokeTests : BaseApiTest
 
         var user = await _userFacade.GetUserByIdAsync(1);
 
-        user.Should().NotBeNull("user with ID 1 must exist");
+        user.Should().NotBeNull(ValidationMessages.ApiUsers.ByIdExists);
         user!.Id.Should().Be(1);
         user.Name.Should().NotBeNullOrWhiteSpace();
 
@@ -78,7 +78,7 @@ public sealed class UserApiSmokeTests : BaseApiTest
             email: $"smoke{DateTime.Now.Ticks}@test.com");
 
         created.Should().NotBeNull();
-        created.Id.Should().BeGreaterThan(0, "the API should assign an ID to the created resource");
+        created.Id.Should().BeGreaterThan(0, ValidationMessages.ApiUsers.CreateIdAssigned);
         created.Name.Should().Be("Smoke Test User");
 
         Reporter.LogInfo("User created with ID: {Id}", created.Id);

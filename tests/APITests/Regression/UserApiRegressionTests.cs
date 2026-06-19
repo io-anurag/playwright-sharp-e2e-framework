@@ -43,7 +43,7 @@ public sealed class UserApiRegressionTests : BaseApiTest
     public async Task GetAllUsers_ReturnsExpectedCount()
     {
         var users = await _userFacade.GetAllUsersAsync();
-        users.Should().HaveCount(10, "JSONPlaceholder returns exactly 10 seed users");
+        users.Should().HaveCount(10, ValidationMessages.ApiUsers.ExactCount);
     }
 
     [TestCase(1)]
@@ -68,7 +68,7 @@ public sealed class UserApiRegressionTests : BaseApiTest
     {
         var response = await _rawClient.GetUserByIdAsync(999);
         ((int)response.StatusCode).Should().Be(404,
-            "a non-existent resource should return 404");
+            ValidationMessages.ApiUsers.NotFoundReturns404);
     }
 
     // ── POST ───────────────────────────────────────────────────────────────────
@@ -88,8 +88,8 @@ public sealed class UserApiRegressionTests : BaseApiTest
 
         var response = await _rawClient.CreateUserAsync(request);
 
-        response.IsSuccessful.Should().BeTrue("POST /users should succeed");
-        ((int)response.StatusCode).Should().Be(201, "resource creation must return 201");
+        response.IsSuccessful.Should().BeTrue(ValidationMessages.ApiUsers.CreateSucceeds);
+        ((int)response.StatusCode).Should().Be(201, ValidationMessages.ApiUsers.CreateReturns201);
         response.Data.Should().NotBeNull();
         response.Data!.Name.Should().Be(request.Name);
         response.Data.Email.Should().Be(request.Email);
@@ -110,7 +110,7 @@ public sealed class UserApiRegressionTests : BaseApiTest
 
         var response = await _rawClient.UpdateUserAsync(1, request);
 
-        response.IsSuccessful.Should().BeTrue("PUT /users/1 should succeed");
+        response.IsSuccessful.Should().BeTrue(ValidationMessages.ApiUsers.UpdateSucceeds);
         response.Data!.Name.Should().Be("Updated Name");
     }
 
@@ -121,7 +121,7 @@ public sealed class UserApiRegressionTests : BaseApiTest
     public async Task DeleteUser_WithValidId_ReturnsOk()
     {
         var response = await _rawClient.DeleteUserAsync(1);
-        response.IsSuccessful.Should().BeTrue("DELETE /users/1 should return 200");
+        response.IsSuccessful.Should().BeTrue(ValidationMessages.ApiUsers.DeleteReturns200);
     }
 
     // ── Schema validation ──────────────────────────────────────────────────────
@@ -134,11 +134,11 @@ public sealed class UserApiRegressionTests : BaseApiTest
 
         users.Should().AllSatisfy(user =>
         {
-            user.Id.Should().BeGreaterThan(0, $"User ID should be positive");
-            user.Name.Should().NotBeNullOrWhiteSpace($"User.Name should not be empty");
-            user.Email.Should().NotBeNullOrWhiteSpace($"User.Email should not be empty");
-            user.Email.Should().Contain("@", $"User.Email '{user.Email}' should be a valid email");
-            user.Username.Should().NotBeNullOrWhiteSpace($"User.Username should not be empty");
+            user.Id.Should().BeGreaterThan(0, ValidationMessages.ApiUsers.IdPositive);
+            user.Name.Should().NotBeNullOrWhiteSpace(ValidationMessages.ApiUsers.NameNotEmpty);
+            user.Email.Should().NotBeNullOrWhiteSpace(ValidationMessages.ApiUsers.EmailNotEmpty);
+            user.Email.Should().Contain("@", string.Format(ValidationMessages.ApiUsers.EmailValidFormat, user.Email));
+            user.Username.Should().NotBeNullOrWhiteSpace(ValidationMessages.ApiUsers.UsernameNotEmpty);
         });
     }
 }

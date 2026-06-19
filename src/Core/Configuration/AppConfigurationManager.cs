@@ -63,16 +63,20 @@ public sealed class AppConfigurationManager : IConfigurationManager
         var env = GetEnvironment();
         var envFilePath = ResolveEnvFilePath(env);
 
+        // clobberExistingVars: false ensures process-level env vars (e.g. HEADLESS, BROWSER
+        // set via $env:HEADLESS="false" or CI/CD) always take priority over .env file values.
+        var loadOptions = new LoadOptions(clobberExistingVars: false);
+
         if (File.Exists(envFilePath))
         {
-            Env.Load(envFilePath);
+            Env.Load(envFilePath, loadOptions);
         }
         else
         {
             // Fallback to .env.dev so local runs always work
             var devPath = ResolveEnvFilePath("dev");
             if (File.Exists(devPath))
-                Env.Load(devPath);
+                Env.Load(devPath, loadOptions);
         }
     }
 

@@ -34,6 +34,10 @@ public sealed class LoginSmokeTests : BaseUITest
         await Page.GotoAsync($"{BaseUrl}/web/index.php/auth/login",
             new PageGotoOptions { WaitUntil = WaitUntilState.NetworkIdle });
 
+        // OrangeHRM is a SPA — wait for the form to be rendered after network idle
+        await Page.WaitForSelectorAsync("input[name='username']",
+            new PageWaitForSelectorOptions { State = WaitForSelectorState.Visible, Timeout = 30000 });
+
         Page.Url.Should().Contain("/auth/login", ValidationMessages.Login.UrlContainsAuthLogin);
         (await Page.IsVisibleAsync("input[name='username']")
             ).Should().BeTrue(ValidationMessages.Login.UsernameInputVisible);

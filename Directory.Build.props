@@ -8,4 +8,10 @@
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
     <RootNamespace>AutomationFramework</RootNamespace>
   </PropertyGroup>
+
+  <!-- Security: force patched versions of vulnerable transitive dependencies (solution-wide) -->
+  <ItemGroup>
+    <!-- Fixes GHSA-rxg9-xrhp-64gj (critical) pulled in via ExtentReports -> RazorEngine.NetCore.nixFix -> System.Security.Permissions -> System.Windows.Extensions -->
+    <PackageReference Include="System.Drawing.Common" Version="10.0.9" />
+  </ItemGroup>
 </Project>

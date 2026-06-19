@@ -33,13 +33,18 @@ public static class BrowserFactory
         LoggerService.Instance.Information(
             "Launching browser: {Browser} | Headless: {Headless}", browserName, headless);
 
+        // --start-maximized only applies when headed; ignored silently in headless mode.
+        string[] chromiumArgs = headless
+            ? ["--no-sandbox", "--disable-dev-shm-usage"]
+            : ["--no-sandbox", "--disable-dev-shm-usage", "--start-maximized"];
+
         IBrowser browser = browserName.Trim().ToLowerInvariant() switch
         {
             BrowserConstants.Chrome =>
                 await playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions
                 {
                     Headless = headless,
-                    Args     = ["--no-sandbox", "--disable-dev-shm-usage"],
+                    Args     = chromiumArgs,
                     Channel  = "chrome"
                 }),
 
@@ -47,7 +52,7 @@ public static class BrowserFactory
                 await playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions
                 {
                     Headless = headless,
-                    Args     = ["--no-sandbox", "--disable-dev-shm-usage"],
+                    Args     = chromiumArgs,
                     Channel  = "msedge"
                 }),
 
@@ -68,7 +73,7 @@ public static class BrowserFactory
                 await playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions
                 {
                     Headless = headless,
-                    Args     = ["--no-sandbox", "--disable-dev-shm-usage"]
+                    Args     = chromiumArgs
                 })
         };
 
@@ -80,7 +85,7 @@ public static class BrowserFactory
                 "Unknown browser '{Browser}'. Defaulting to Chromium.", browserName);
         }
 
-        return new PlaywrightBrowserDriver(playwright, browser);
+        return new PlaywrightBrowserDriver(playwright, browser, headless);
     }
 
     /// <summary>Overload that accepts the <see cref="CoreBrowserType"/> enum.</summary>

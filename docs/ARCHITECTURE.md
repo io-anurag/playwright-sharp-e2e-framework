@@ -2,7 +2,7 @@
 
 ## Overview
 
-The AutomationFramework follows **Clean Architecture** principles, separating concerns into concentric layers. Inner layers know nothing about outer layers; dependencies only point inward.
+The playwright-sharp-e2e-framework follows **Clean Architecture** principles, separating concerns into concentric layers. Inner layers know nothing about outer layers; dependencies only point inward.
 
 ```
 ┌─────────────────────────────────────────────────────────┐

@@ -1,4 +1,4 @@
-# AutomationFramework
+# playwright-sharp-e2e-framework
 
 A production-ready, enterprise-scale test automation framework built with **C# (.NET 10)**, **Playwright**, **NUnit**, **RestSharp**, **FluentAssertions**, **ExtentReports**, and **Serilog**.
 
@@ -72,7 +72,7 @@ Tests (UITests / APITests)
 ## Project Structure
 
 ```
-AutomationFramework/
+playwright-sharp-e2e-framework/
 ├── src/
 │   ├── Core/               # Framework foundation
 │   │   ├── Configuration/  # AppConfigurationManager, EnvironmentConfig
@@ -151,8 +151,8 @@ AutomationFramework/
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/your-org/AutomationFramework.git
-cd AutomationFramework
+git clone https://github.com/io-anurag/playwright-sharp-e2e-framework.git
+cd playwright-sharp-e2e-framework
 
 # 2. Restore NuGet packages
 dotnet restore AutomationFramework.sln
